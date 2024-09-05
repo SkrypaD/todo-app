@@ -16,7 +16,7 @@ app.use(cookiesParser())
 
 
 app.use('/auth', authRoute)
-app.use('/project', projectRoute)
+app.use('/projects', projectRoute)
 
 app.get('/', (req, res) => {
     res.send('hello')
