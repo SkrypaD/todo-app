@@ -1,13 +1,13 @@
 const pool = require('../dbconfig')
 const jwt = require('jsonwebtoken')
 
-async function getAllProjects(req, res){
+async function getAllTables(req, res){
     const { name } = req.params
-    const {username } = jwt.decode(req.cookies.token)
-    // TODO add user for projects table so user can choose only his own projects
+    const {username, user_id } = jwt.decode(req.cookies.token)
+    // TODO add tables which user is not owner of 
     try{
-        const query = 'SELECT * FROM lists'
-        const result = await pool.query(query)
+        const query = 'SELECT * FROM tables WHERE creator_id = $1'
+        const result = await pool.query(query, [user_id])
         const data = result.rows
         res.status(200).json({
             success : true,
@@ -22,13 +22,13 @@ async function getAllProjects(req, res){
     }
 }
 
-async function getProjectByName(req, res){
+async function getTableByName(req, res){
     const { name } = req.params
-    const {username } = jwt.decode(req.cookies.token)
-    // TODO add user for projects table so user can choose only his own projects
+    const { user_id } = jwt.decode(req.cookies.token)
+    // TODO user should be able to have access to projects that he is not owner of 
     try{
-        const query = 'SELECT * FROM lists WHERE name = $1'
-        const result = await pool.query(query, [name])
+        const query = 'SELECT * FROM tables WHERE name = $1 AND creator_id = $2'
+        const result = await pool.query(query, [name, user_id])
         if(result.rows.length === 0){
             return res.send(400).send({
                 success : false,
@@ -48,8 +48,34 @@ async function getProjectByName(req, res){
     }
 }
 
+async function createTable(req, res){
+   const { tableName } = req.body 
+    const { user_id } = jwt.decode(req.cookies.token)
+
+
+    try{
+        const query = 'INSERT INTO tables (title, creator_id) VALUES ($1, $2)'
+        const result = await pool.query(query, [tableName, user_id])
+
+        return res.send(201).send({
+            success : true
+        })
+    }catch(err){
+        console.log(err)
+        res.status(500).send({
+            success : false,
+            message : err
+        })
+    }
+}
+
+async function deleteTable(req, res){
+}
+
 
 module.exports = {
-    getAllProjects,
-    getProjectByName
+    getAllTables,
+    getTableByName,
+    createTable,
+    deleteTable
 }

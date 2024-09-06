@@ -4,7 +4,7 @@ const cors = require('cors')
 const cookiesParser = require('cookie-parser')
 
 const authRoute = require('./routes/authRoute')
-const projectRoute = require('./routes/projectRoute')
+const tableRoute = require('./routes/tableRoute')
 
 dotenv.config()
 
@@ -16,7 +16,7 @@ app.use(cookiesParser())
 
 
 app.use('/auth', authRoute)
-app.use('/projects', projectRoute)
+app.use('/tables', tableRoute)
 
 app.get('/', (req, res) => {
     res.send('hello')

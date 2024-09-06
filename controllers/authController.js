@@ -18,9 +18,10 @@ async function loginUserController(req, res){
         const query = 'SELECT * FROM users WHERE name = $1'
         const user = await pool.query(query, [username])
 
-        const isMatch = await bcrypt.compare(password, user.rows[0].password)
+        const userData = user.rows[0]
+        const isMatch = await bcrypt.compare(password, userData.password)
         if(isMatch){
-            let token = jwt.sign({ username : username }, process.env.SECRET,{
+            let token = jwt.sign({ username : username, user_id : userData.id }, process.env.SECRET,{
                 expiresIn : '1h'
             })
 
@@ -56,7 +57,7 @@ async function registerUserController(req, res ){
     }
 
     try{
-        const query = 'INSERT INTO users VALUES ($1, $2, $3);'
+        const query = 'INSERT INTO users ( name, password, email ) VALUES ($1, $2, $3);'
         const hashedPassword = await bcrypt.hash(password, (process.env.SALT_ROUNDS, 10))
         const result = await pool.query(query, [username, hashedPassword, email])
 
@@ -69,7 +70,7 @@ async function registerUserController(req, res ){
         console.log(err)
         res.status(400).send({
             success : false,
-            message : 'Could not create an account try again...',
+            message : err
         })
     }
 }
