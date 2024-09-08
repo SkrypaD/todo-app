@@ -5,6 +5,7 @@ const cookiesParser = require('cookie-parser')
 
 const authRoute = require('./routes/authRoute')
 const tableRoute = require('./routes/tableRoute')
+const cardRoute = require('./routes/cardRoute')
 
 dotenv.config()
 
@@ -17,6 +18,7 @@ app.use(cookiesParser())
 
 app.use('/auth', authRoute)
 app.use('/tables', tableRoute)
+app.use('/cards', cardRoute)
 
 app.get('/', (req, res) => {
     res.send('hello')

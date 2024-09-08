@@ -32,6 +32,9 @@ async function getTableByName(req, res){
                 message : 'No such project found!'
             })
         }
+        res.cookie('table_id', result.rows[0].id, {
+            httpOnly : true
+        })
         return res.status(200).send({
             success : true,
             data : result.rows[0]
