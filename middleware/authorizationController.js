@@ -20,7 +20,19 @@ function signInRequired(req, res, next){
     }
 }
 
+function chosenTableRequired(req, res, next){
+    if(req.cookies.table_id){
+        return next()
+    }else{
+        return res.status(404).send({
+            success : false,
+            message : "You need to chose table!!"
+        })
+    }
+}
+
 
 module.exports = {
-    signInRequired
+    signInRequired,
+    chosenTableRequired
 }

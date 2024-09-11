@@ -8,13 +8,6 @@ async function createCard(req, res){
     const { user_id } = jwt.decode(req.cookies.token)
     const { title, content, deadline } = req.body
 
-    if(table_id == null){
-        return res.status(404).send({
-            success : false,
-            message : 'Select table to create card into'
-        })
-    }
-
     try{
         const query = 'INSERT INTO cards (title, content, deadline, table_id, creator_id ) VALUES ($1, $2, $3, $4, $5)'
         const result = await pool.query(query, [title, content, deadline, table_id, user_id])
@@ -41,8 +34,7 @@ async function deleteCard(req, res){
         const query = 'DELETE FROM cards WHERE id = $1'
         const result = await pool.query(query, [id])
 
-        return res.status(204).send({
-            success : true,
+        return res.sendStatus(203).send({ success : true,
             message : 'Card has been deleted'
         })
     }catch(err){
@@ -62,6 +54,13 @@ async function updateCard(req, res){
 
     let change = ''
     const keys = Object.keys(data);
+
+    if(keys.length === 0){
+        return res.status(400).send({
+            success : false,
+            message : "Bad request!"
+        })
+    }
 
     keys.forEach((key, index) => {
         change += ` ${key}='${data[key]}'`;
@@ -98,12 +97,11 @@ async function getAllCards(req, res){
     const { user_id } = jwt.decode(req.cookies.token)
 
     try{
-        const query = 'SELECT * FROM cards WHERE creator_id = $1'
+        const query = 'SELECT cards.*  FROM cards JOIN table_users ON cards.table_id = table_users.table_id LEFT JOIN tables ON cards.table_id = tables.id WHERE table_users.user_id = $1 OR tables.creator_id = $1'
         const result = await pool.query(query, [user_id])
-
         return res.status(200).send({
             success : true,
-            message : result.rows[0]
+            message : result.rows
         })
     }catch(err){
         console.log(err)
@@ -118,12 +116,14 @@ async function getAllCardForTable(req, res){
     const { id } = req.params
 
     try{
-        const query = 'SELECT * FROM cards WHERE table_id = 6'
-        const result = await pool.query(query)
-
+        const query = 'SELECT * FROM cards WHERE table_id = $1'
+        const result = await pool.query(query, [id])
+        if(result.rows.length == 0){
+            return res.sendStatus(204)
+        }
         return res.status(200).send({
             success : true,
-            data : result.rows[0]
+            data : result.rows
         })
     }catch(err){
         console.log(err)
@@ -149,8 +149,5 @@ module.exports = {
     deleteCard,
     updateCard,
     getAllCards,
-    getAllCardForTable,
-    getNewCardsForTable,
-    getInProgressCardsForTable,
-    getDoneCardsForTable
+    getAllCardForTable
 }
