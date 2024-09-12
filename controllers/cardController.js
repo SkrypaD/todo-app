@@ -26,15 +26,21 @@ async function createCard(req, res){
 } 
 
 async function deleteCard(req, res){
-    const table_id = req.cookies.table_id
     const { user_id } = jwt.decode(req.cookies.token)
     const { id } = req.params
 
     try{
-        const query = 'DELETE FROM cards WHERE id = $1'
-        const result = await pool.query(query, [id])
+        const query = 'DELETE FROM cards WHERE id = $2 AND ( table_id IN ( SELECT table_id FROM table_users WHERE user_id = $1) OR table_id IN ( SELECT id FROM tables WHERE creator_id = $1));'
+        const result = await pool.query(query, [user_id, id])
 
-        return res.sendStatus(203).send({ success : true,
+        if(result.rowCount === 0){
+            return res.status(404).send({
+                success : false,
+                message : 'Such card do not exist'
+            })
+        }
+
+        return res.status(203).send({ success : true,
             message : 'Card has been deleted'
         })
     }catch(err){
@@ -97,7 +103,7 @@ async function getAllCards(req, res){
     const { user_id } = jwt.decode(req.cookies.token)
 
     try{
-        const query = 'SELECT cards.*  FROM cards JOIN table_users ON cards.table_id = table_users.table_id LEFT JOIN tables ON cards.table_id = tables.id WHERE table_users.user_id = $1 OR tables.creator_id = $1'
+        const query = 'SELECT DISTINCT(cards.*)  FROM cards JOIN table_users ON cards.table_id = table_users.table_id LEFT JOIN tables ON cards.table_id = tables.id WHERE table_users.user_id = $1 OR tables.creator_id = $1'
         const result = await pool.query(query, [user_id])
         return res.status(200).send({
             success : true,
@@ -114,10 +120,11 @@ async function getAllCards(req, res){
 
 async function getAllCardForTable(req, res){
     const { id } = req.params
+    const { user_id } = jwt.decode(req.cookies.token)
 
     try{
-        const query = 'SELECT * FROM cards WHERE table_id = $1'
-        const result = await pool.query(query, [id])
+        const query = 'select distinct(cards.*) from cards join tables on cards.table_id = tables.id join table_users on cards.table_id = table_users.table_id where cards.table_id = $1 and( tables.creator_id = $2 or table_users.user_id = $2)'
+        const result = await pool.query(query, [id, user_id])
         if(result.rows.length == 0){
             return res.sendStatus(204)
         }
