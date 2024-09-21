@@ -4,8 +4,8 @@ const jwt = require('jsonwebtoken')
 
 
 async function createCard(req, res){
-    const table_id = req.cookies.table_id
-    const { user_id } = jwt.decode(req.cookies.token)
+    const table_id = jwt.decode(req.headers['tableid'])
+    const { user_id } = jwt.decode(req.headers['authorization'].split(' ')[1])
     const { title, content, deadline } = req.body
 
     try{
@@ -26,7 +26,7 @@ async function createCard(req, res){
 } 
 
 async function deleteCard(req, res){
-    const { user_id } = jwt.decode(req.cookies.token)
+    const { user_id } = jwt.decode(req.headers['authorization'].split(' ')[1])
     const { id } = req.params
 
     try{
@@ -53,8 +53,8 @@ async function deleteCard(req, res){
 }
 
 async function updateCard(req, res){
-    const table_id = req.cookies.table_id
-    const { user_id } = jwt.decode(req.cookies.token)
+    const table_id = jwt.decode(req.headers['tableid'])
+    const { user_id } = jwt.decode(req.headers['authorization'].split(' ')[1])
     const { id } = req.params
     const data = req.body
 
@@ -100,7 +100,7 @@ async function updateCard(req, res){
 }
 
 async function getAllCards(req, res){
-    const { user_id } = jwt.decode(req.cookies.token)
+    const { user_id } = jwt.decode(req.headers['authorization'].split(' ')[1])
 
     try{
         const query = 'SELECT DISTINCT(cards.*)  FROM cards JOIN table_users ON cards.table_id = table_users.table_id LEFT JOIN tables ON cards.table_id = tables.id WHERE table_users.user_id = $1 OR tables.creator_id = $1'
@@ -120,7 +120,7 @@ async function getAllCards(req, res){
 
 async function getAllCardForTable(req, res){
     const { id } = req.params
-    const { user_id } = jwt.decode(req.cookies.token)
+    const { user_id } = jwt.decode(req.headers['authorization'].split(' ')[1])
 
     try{
         const query = 'select distinct(cards.*) from cards join tables on cards.table_id = tables.id join table_users on cards.table_id = table_users.table_id where cards.table_id = $1 and( tables.creator_id = $2 or table_users.user_id = $2)'
