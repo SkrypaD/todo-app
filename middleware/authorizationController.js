@@ -2,7 +2,7 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken')
 
 function signInRequired(req, res, next){
-    const token = req.cookies.token
+    const token = req.headers['authorization'].split(' ')[1]
     if(token == null){
         return res.status(401).send({
             success : false,
@@ -21,7 +21,7 @@ function signInRequired(req, res, next){
 }
 
 function chosenTableRequired(req, res, next){
-    if(req.cookies.table_id){
+    if(req.headers['tableid']){
         return next()
     }else{
         return res.status(404).send({

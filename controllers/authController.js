@@ -8,7 +8,7 @@ async function loginUserController(req, res){
     const { username, password } = req.body
 
     if(!username || !password){
-        res.status(400).send({
+        return res.status(400).send({
             success : false,
             message : 'Username and password required!'
         })
@@ -25,21 +25,19 @@ async function loginUserController(req, res){
                 expiresIn : '1h'
             })
 
-            res.cookie('token', token, {
-                httpOnly : true
-            })
-            res.status(200).send({
+            return res.status(200).send({
                 success : true,
-                message : 'Logged in!!!'
+                message : 'Logged in!!!',
+                token : token
             })
         }else{
-            res.status(401).send({
+            return res.status(401).send({
                 success : false,
-                message : "Invalid password"
+                message : "Invalid password",
             })
         }
     }catch(err){
-        res.status(400).send({
+        return res.status(400).send({
             success : false,
             message : 'Invalid data try again...',
         })
